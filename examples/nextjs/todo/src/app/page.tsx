@@ -1,5 +1,10 @@
 import React from "react"
 import { Shape, ShapeStream } from "@electric-sql/client"
+import {
+  createCollectionClient,
+  dehydrateCollections,
+} from "../lib/createCollectionClient"
+import { CollectionHydrationBoundary } from "../lib/CollectionHydrationBoundary"
 import TodoClient from "./TodoClient"
 import type { UpdateConfig, UpdateTodo } from "../db/validation"
 
@@ -20,7 +25,7 @@ async function fetchInitialShapeData<T>(table: string): Promise<Array<T>> {
   return shapeData as Array<T>
 }
 
-// Server component that fetches initial data
+// Server component that prefetches data and creates dehydrated state
 export default async function TodoPage() {
   // Fetch initial data directly from Electric SQL
   const fetchInitialData = async () => {
@@ -58,10 +63,22 @@ export default async function TodoPage() {
 
   const { initialTodos, initialConfig } = await fetchInitialData()
 
+  // Create a temporary collection client to prefetch data (similar to React Query's prefetchQuery)
+  const serverCollectionClient = createCollectionClient(
+    initialTodos,
+    initialConfig
+  )
+
+  // Dehydrate the collection state (similar to React Query's dehydrate)
+  const dehydratedState = dehydrateCollections(serverCollectionClient)
+
   console.log(`initialTodos Server:`, initialTodos)
   console.log(`initialConfig:`, initialConfig)
+  console.log(`dehydratedState:`, dehydratedState)
 
   return (
-    <TodoClient initialTodos={initialTodos} initialConfig={initialConfig} />
+    <CollectionHydrationBoundary state={dehydratedState}>
+      <TodoClient />
+    </CollectionHydrationBoundary>
   )
 }

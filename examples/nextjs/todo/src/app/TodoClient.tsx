@@ -1,33 +1,18 @@
 "use client"
 
 import React, { useEffect, useState } from "react"
-import { useLiveQuery } from "@tanstack/react-db"
 import {
-  createConfigCollection,
-  createTodoCollection,
-} from "../lib/collections"
+  useConfigCollection,
+  useTodosCollection,
+} from "../lib/useCollectionQuery"
 import { useTodos } from "../hooks/useTodos"
 import { useConfig } from "../hooks/useConfig"
 import { getComplementaryColor } from "../lib/utils"
-import type { Collection } from "@tanstack/react-db"
-import type { UpdateConfig, UpdateTodo } from "../db/validation"
+import type { UpdateTodo } from "../db/validation"
 import type { FormEvent } from "react"
 
-interface TodoClientProps {
-  initialTodos: Array<UpdateTodo>
-  initialConfig: Array<UpdateConfig>
-}
-
-export default function TodoClient({
-  initialTodos,
-  initialConfig,
-}: TodoClientProps) {
-  // Temporary debug logging
-  console.log(`=== TodoClient Debug ===`)
-  console.log(`initialTodos received:`, initialTodos)
-  console.log(`initialConfig received:`, initialConfig)
-  console.log(`========================`)
-
+// Main Todo application component
+export default function TodoClient() {
   const [newTodo, setNewTodo] = useState(``)
   const [mounted, setMounted] = useState(false)
 
@@ -36,25 +21,10 @@ export default function TodoClient({
     setMounted(true)
   }, [])
 
-  // Create collections with initial data
-  const todoCollection = createTodoCollection(initialTodos)
-  const configCollection = createConfigCollection(initialConfig)
-
-  // Use live queries
-  const { data: todos } = useLiveQuery((q) =>
-    q
-      .from({ todoCollection: todoCollection as Collection<UpdateTodo> })
-      .keyBy(`@id`)
-      .orderBy(`@created_at`)
-      .select(`@id`, `@created_at`, `@text`, `@completed`)
-  )
-
-  const { data: configData } = useLiveQuery((q) =>
-    q
-      .from({ configCollection: configCollection as Collection<UpdateConfig> })
-      .keyBy(`@id`)
-      .select(`@id`, `@key`, `@value`)
-  )
+  // Use the collection hooks (similar to useQuery)
+  const { data: todos, collection: todoCollection } = useTodosCollection()
+  const { data: configData, collection: configCollection } =
+    useConfigCollection()
 
   // Use custom hooks
   const { addTodo, updateTodo, deleteTodo } = useTodos(todoCollection)
