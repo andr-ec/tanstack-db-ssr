@@ -7,14 +7,10 @@ import type { UpdateTodo } from "../db/validation"
 export const useTodos = (todoCollection: Collection<UpdateTodo>) => {
   const addTodo = useOptimisticMutation({
     mutationFn: async ({ transaction }) => {
-      console.log(`AddTodo mutation triggered:`, transaction)
       const mutation = transaction.mutations[0] as PendingMutation<UpdateTodo>
       const { modified } = mutation
-      console.log(`About to create todo with data:`, modified)
       const response = await api.todos.create(modified)
-      console.log(`API response:`, response)
       await collectionSync(mutation, response.txid)
-      console.log(`Collection sync completed`)
     },
   })
 

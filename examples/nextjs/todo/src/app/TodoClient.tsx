@@ -11,33 +11,27 @@ import { getComplementaryColor } from "../lib/utils"
 import type { UpdateTodo } from "../db/validation"
 import type { FormEvent } from "react"
 
-// Main Todo application component
 export default function TodoClient() {
   const [newTodo, setNewTodo] = useState(``)
   const [mounted, setMounted] = useState(false)
 
-  // Handle client-side initialization after hydration
   useEffect(() => {
     setMounted(true)
   }, [])
 
-  // Use the collection hooks (similar to useQuery)
   const { data: todos, collection: todoCollection } = useTodosCollection()
   const { data: configData, collection: configCollection } =
     useConfigCollection()
 
-  // Use custom hooks
   const { addTodo, updateTodo, deleteTodo } = useTodos(todoCollection)
   const { getConfigValue, setConfigValue } = useConfig(
     configData,
     configCollection
   )
 
-  // Get theme values
   const backgroundColor = getConfigValue(`backgroundColor`)
   const titleColor = getComplementaryColor(backgroundColor)
 
-  // Event handlers
   const handleColorChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newColor = e.target.value
     setConfigValue(`backgroundColor`, newColor)
@@ -97,7 +91,6 @@ export default function TodoClient() {
     )
   }
 
-  // Computed values
   const activeTodos = todos.filter((todo) => !todo.completed)
   const completedTodos = todos.filter((todo) => todo.completed)
 
